@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>NFL 2017 Picks</title>
+	<link rel="shortcut icon" href="http://icons.veryicon.com/ico/System/Pretty%20Office%206/american%20football.ico" />
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+
+
+</head>
+
+<script type="text/javascript">
+  window.onload = function() { RunAll() };
+
+
+
+</script>
+
+
+<script>
+
+var xl = 'https://dl.dropboxusercontent.com/s/mc6eg0md5cnkpso/wktest.csv?raw=1';
+var m = [];
+var nCol = 54;
+var excel_output = [];
+var pageURL = window.location.href;
+var suf = pageURL.substring(pageURL.indexOf("?")+1, pageURL.length);
+
+//var OLD OLDrl_post = "https://query.yahooapis.com/v1/public/yql?q=SELECT%20*%20FROM%20html%20%0AWHERE%20url%3D%22http%3A%2F%2Fwww.cbssports.com%2Fnfl%2Fscoreboard%2F%22%20%0AAND%20xpath%3D%22%2F%2Fdiv%5B%40class%3D'col-4%20single-score-card'%5D%22&format=json&diagnostics=true&callback=";
+//var OLDurl_post = "https://query.yahooapis.com/v1/public/yql?q=SELECT%20*%20FROM%20html%20%0AWHERE%20url%3D%22http%3A%2F%2Fwww.cbssports.com%2Fnfl%2Fscoreboard%2F%22%20%0AAND%20xpath%3D%22%2F%2Fdiv[%40class%3D%27single-score-card%20%20postgame%27]%22&format=json&diagnostics=true&callback=";
+//var OLDurl_pre = "https://query.yahooapis.com/v1/public/yql?q=SELECT%20*%20FROM%20html%20%0AWHERE%20url%3D%22http%3A%2F%2Fwww.cbssports.com%2Fnfl%2Fscoreboard%2F%22%20%0AAND%20xpath%3D%22%2F%2Fdiv[%40class%3D%27single-score-card%20%20pregame%27]%22&format=json&diagnostics=true&callback=";
+
+//yql: select * from htmlstring where url='https://www.cbssports.com/nfl/scoreboard/' and xpath="//div[@class='single-score-card  pregame nfl']"
+var url_pre = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20htmlstring%20where%20url%3D'https%3A%2F%2Fwww.cbssports.com%2Fnfl%2Fscoreboard%2F'%20and%20xpath%3D%22%2F%2Fdiv%5B%40class%3D'single-score-card%20%20pregame%20nfl'%5D%22&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=";
+//yqlselect * from htmlstring where url='https://www.cbssports.com/nfl/scoreboard/' and xpath="//div[@class='single-score-card  postgame nfl']"
+var url_post = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20htmlstring%20where%20url%3D'https%3A%2F%2Fwww.cbssports.com%2Fnfl%2Fscoreboard%2F'%20and%20xpath%3D%22%2F%2Fdiv%5B%40class%3D'single-score-card%20%20postgame%20nfl'%5D%22&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=";
+
+var url_ingame = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20htmlstring%20where%20url%3D'https%3A%2F%2Fwww.cbssports.com%2Fnfl%2Fscoreboard%2F'%20and%20xpath%3D%22%2F%2Fdiv%5B%40class%3D'single-score-card%20%20ingame%20nfl'%5D%22&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=";
+
+var ot = [];
+var ot2 = [];
+var away_teams = [];
+var home_teams = [];
+var away_scores = [];
+var home_scores = [];
+var game_status_code = []; //1 = yet to start, 2 = in progress, 3 = final
+var game_status_text = [];
+var differential = [];
+var nGames = [];
+//var team_full = ["Carolina", "Philadelphia", "Indianapolis", "New Orleans", "Giants", "Houston", "Washington", "Cleveland", "Jets", "Kansas City", "Pittsburgh", "Tennessee", "San Francisco", "Tampa Bay", "Minnesota", "Arizona", "Miami", "Baltimore", "Chicago", "New England", "Jacksonville", "Denver", "Detroit", "Buffalo", "Atlanta", "Seattle", "Green Bay", "Los Angeles", "Dallas", "Cincinnati", "Oakland", "Los Angeles"];
+//var team_full = ["Panthers", "Eagles", "Colts", "Saints", "Giants", "Texans", "Redskins", "Browns", "Jets", "Chiefs", "Steelers", "Titans", "49ers", "Buccaneers", "Vikings", "Cardinals", "Dolphins", "Ravens", "Bears", "Patriots", "Jaguars", "Broncos", "Lions", "Bills", "Falcons", "Seahawks", "Packers", "Rams", "Cowboys", "Bengals", "Raiders", "Chargers"];
+var team_code = ["CAR", "PHI", "IND", "NO", "NYG", "HOU", "WAS", "CLE", "NYJ", "KC", "PIT", "TEN", "SF", "TB", "MIN", "AZ", "MIA", "BAL", "CHI", "NE", "JAX", "DEN", "DET", "BUF", "ATL", "SEA", "GB", "LAR", "DAL", "CIN", "OAK", "LAC"]; 
+var team_full = ["CAR", "PHI", "IND", "NO", "NYG", "HOU", "WAS", "CLE", "NYJ", "KC", "PIT", "TEN", "SF", "TB", "MIN", "ARI", "MIA", "BAL", "CHI", "NE", "JAC", "DEN", "DET", "BUF", "ATL", "SEA", "GB", "LAR", "DAL", "CIN", "OAK", "LAC"]; 
+
+var main_order_home = [];
+var main_order_away = [];
+var team_code_lower = [];
+var spreads = [];
+var winning_team = [];
+var final_order = [];
+var team_picks = [];
+var correct_picks = [];
+var sorted_score = [];
+var sorted_score_overall = [];
+var si = [];
+var si2 = [];
+var mon_points = [];
+var overall_wins = [];
+var combined_wins = [];
+var big_string_pre = [];
+var big_string_post = [];
+var big_string_ingame = [];
+var s1 = [];
+var s2 = [];
+var team_code_post = [];
+var team_code_pre = [];
+var score_code = [];
+var score_code_ingame = [];
+var tmp_string = [];
+var tmp_string_list = [];
+
+for (var i = 0; i < team_code.length; i++){
+        team_code_lower[i] = team_code[i].toLowerCase();
+}
+var x = [];
+var fb_test = [];
+
+function RunAll() {
+            $.getJSON(url_post, function(json) {
+                console.log("success1");
+                ot = json;
+				big_string_post = ot.query.results.result;
+				
+				//team names
+				var marker = 'http://www.cbssports.com/nfl/teams/page/';
+				i = big_string_post.indexOf(marker)  + marker.length ;
+				var count = 0;
+				while(i >= marker.length ) {
+					count++;
+					s1.push(i);
+					i = big_string_post.indexOf('/', i+1);
+		
+					s2.push(i);
+					if (count%2 == 1){
+						team_code_post.push(big_string_post.substring(s1[s1.length-1], s2[s2.length-1]));
+					}
+					i = big_string_post.indexOf(marker, i+1) + marker.length;
+				}
+	
+				//team scores
+				s1 = [];
+				s2 = [];
+				var marker = '<td class="total-score">';
+				i = big_string_post.indexOf(marker)  + marker.length ;
+				var count = 0;
+				while(i >= marker.length ) {
+					count++;
+					s1.push(i);
+					i = big_string_post.indexOf('<', i+1);
+		
+					s2.push(i);
+		
+					score_code.push(big_string_post.substring(s1[s1.length-1], s2[s2.length-1]));
+		
+					i = big_string_post.indexOf(marker, i+1) + marker.length;
+				}
+	
+				//organize everything properly
+				for (var team = 0; team < team_code_post.length; team++){
+					if (team%2 == 0){
+						away_teams.push(team_code_post[team]);
+						away_scores.push(score_code[team]);
+					} else {
+						home_teams.push(team_code_post[team]);
+						home_scores.push(score_code[team]);
+			
+						//overall game stuff
+						game_status_text.push('Final');
+						game_status_code.push(3);
+						differential.push(home_scores[home_scores.length -1] - away_scores[away_scores.length - 1]);
+					}
+				}
+				
+				//next function
+				RunPre();
+            }).fail(function(d) {
+                console.log("error");
+                RunAll();
+            })
+}
+
+function RunPre() {
+            $.getJSON(url_pre, function(json) {
+                console.log("success2");
+                ot2 = json;
+				big_string_pre = ot2.query.results.result;
+		
+				//team names
+				s1 = [];
+				s2 = [];
+				team_code_pre = [];
+				var marker = 'http://www.cbssports.com/nfl/teams/page/';
+				i = big_string_pre.indexOf(marker)  + marker.length ;
+				var count = 0;
+				while(i >= marker.length ) {
+					count++;
+					s1.push(i);
+					i = big_string_pre.indexOf('/', i+1);
+		
+					s2.push(i);
+					if (count%2 == 1){
+						team_code_pre.push(big_string_pre.substring(s1[s1.length-1], s2[s2.length-1]));
+					}
+					i = big_string_pre.indexOf(marker, i+1) + marker.length;
+				}
+	
+				//game status
+				s1 = [];
+				s2 = [];
+				var marker = 'formatForToday&quot;: &quot;h:mma&quot; }">';
+				i = big_string_pre.indexOf(marker)  + marker.length ;
+				var count = 0;
+				while(i >= marker.length ) {
+					count++;
+					s1.push(i);
+					i = big_string_pre.indexOf('<', i+1);
+		
+					s2.push(i);
+			
+					game_status_text.push(big_string_pre.substring(s1[s1.length-1], s2[s2.length-1]));
+					game_status_text[game_status_text.length - 1] = game_status_text[game_status_text.length - 1].trim();
+			
+					i = big_string_pre.indexOf(marker, i+1) + marker.length;
+			
+				}
+	
+				//organize everything properly
+				for (var team = 0; team < team_code_pre.length; team++){
+					if (team%2 == 0){
+						away_teams.push(team_code_pre[team]);
+					} else {
+						home_teams.push(team_code_pre[team]);
+			
+						//overall game stuff
+						game_status_code.push(1);
+						away_scores.push([]);
+						home_scores.push([]);
+						differential.push([] - []);
+					}
+				}
+				
+				//next function
+				RunInGame();
+            }).fail(function(d) {
+                console.log("error");
+                RunPre();
+            })
+}
+
+function RunInGame() {
+            $.getJSON(url_ingame, function(json) {
+                console.log("success3");
+                ot3 = json;
+				big_string_ingame = ot3.query.results.result;
+		
+				//team names
+				s1 = [];
+				s2 = [];
+				team_code_ingame = [];
+				var marker = 'http://www.cbssports.com/nfl/teams/page/';
+				i = big_string_ingame.indexOf(marker)  + marker.length ;
+				var count = 0;
+				while(i >= marker.length ) {
+					count++;
+					s1.push(i);
+					i = big_string_ingame.indexOf('/', i+1);
+		
+					s2.push(i);
+					if (count%2 == 1){
+						team_code_ingame.push(big_string_ingame.substring(s1[s1.length-1], s2[s2.length-1]));
+					}
+					i = big_string_ingame.indexOf(marker, i+1) + marker.length;
+				}
+	
+				//team scores
+				s1 = [];
+				s2 = [];
+				var marker = '<td class="total-score">';
+				i = big_string_ingame.indexOf(marker)  + marker.length ;
+				var count = 0;
+				while(i >= marker.length ) {
+					count++;
+					s1.push(i);
+					i = big_string_ingame.indexOf('<', i+1);
+		
+					s2.push(i);
+		
+					score_code_ingame.push(big_string_ingame.substring(s1[s1.length-1], s2[s2.length-1]));
+		
+					i = big_string_ingame.indexOf(marker, i+1) + marker.length;
+				}
+		
+				//game status
+				s1 = [];
+				s2 = [];
+				var marker = '<div class="game-status';
+				i = big_string_ingame.indexOf(marker) + marker.length;
+
+				var count = 0;
+				while(i >= marker.length ) {
+					tmp_string = [];
+					count++;
+					s1.push(i);
+					i = big_string_ingame.indexOf('</div>', i+1);
+					s2.push(i);
+			
+					tmp_string = big_string_ingame.substring(s1[s1.length-1], s2[s2.length-1]);
+					
+			
+					if (tmp_string.indexOf('emphasis') >= 0){
+						tmp_string_list.push(tmp_string);
+						tmp_string = tmp_string.trim();
+						tmp_string = tmp_string.replace(/\s+/g, '');
+						tmp_string = tmp_string.replace('<span>', '');
+						tmp_string = tmp_string.replace('<divclass="game-status', '');
+						tmp_string = tmp_string.replace('<div class="game-status">', '');
+						tmp_string = tmp_string.replace('<divclass="game-status', '');
+						tmp_string = tmp_string.replace('emphasis">', '');
+						tmp_string = tmp_string.replace('</span>', ' ');
+						game_status_text.push(tmp_string);
+					} else if (tmp_string.indexOf('on') < 0 && tmp_string.indexOf('two') < 0 && tmp_string.indexOf('TOUCHDOWN') < 0 && tmp_string.indexOf('Touchdown') < 0 && tmp_string.indexOf('Kickoff') < 0){
+						tmp_string_list.push(tmp_string);
+						tmp_string = tmp_string.trim();
+						tmp_string = tmp_string.replace(/\s+/g, '');
+						tmp_string = tmp_string.replace('<span>', '');
+						tmp_string = tmp_string.replace('">', '');
+						tmp_string = tmp_string.replace('</span>', '');
+						tmp_string = tmp_string.replace('<divclass="game-status', '');
+						tmp_string = tmp_string.replace('<div class="game-status">', '');
+						tmp_string = tmp_string.replace('<divclass="game-status', '');
+						game_status_text.push(tmp_string);
+					}
+			
+					i = big_string_ingame.indexOf(marker, i+1);  + marker.length;
+				}
+	
+				//organize everything properly
+				for (var team = 0; team < team_code_ingame.length; team++){
+					if (team%2 == 0){
+						away_teams.push(team_code_ingame[team]);
+						away_scores.push(score_code_ingame[team]);
+					} else {
+						home_teams.push(team_code_ingame[team]);
+						home_scores.push(score_code_ingame[team]);
+		
+						//overall game stuff
+						game_status_code.push(2);
+						differential.push(home_scores[home_scores.length -1] - away_scores[away_scores.length - 1]);
+					}
+				}
+				
+				//next function
+			
+				Run_Excel();
+            }).fail(function(d) {
+                console.log("error");
+                RunInGame();
+            })
+}
+
+function Run_Excel(){
+	$.get(xl, function(data){
+        m = data;
+
+        fb_test = m.indexOf('\n');
+        
+        
+        if (fb_test == -1){
+			m = m.replace(/\r/g, ",");
+		} else {
+			m = m.replace(/\n/g, ",");
+		}
+        
+		m = m.split(',');
+		for (var i = 0; i < nCol; i++){
+				excel_output[i] = [];
+		}
+		for (var i = 0; i < m.length; i++){
+				excel_output[i%nCol].push(m[i]);
+		}
+		//figure out game order
+		for (var j = 1; j <= home_teams.length; j++){
+				for (var k = 0; k < team_code.length; k++){
+						if (excel_output[2][j].toUpperCase().indexOf(team_code[k]) >= 0){
+								main_order_home[j-1]  = k;
+								break;
+						} 
+				}
+				for (var k = 0; k < team_code.length; k++){
+						if (excel_output[1][j].toUpperCase().indexOf(team_code[k]) >= 0){
+								main_order_away[j-1]  = k;
+								break;
+						} 
+				}
+		}
+		for (var k = 0; k < home_teams.length; k++){
+				for (var j = 0; j < home_teams.length; j++){
+						if (home_teams[j].indexOf(team_full[main_order_home[k]]) >= 0){
+								final_order[k] = j;
+								break;
+						}
+				}
+		}
+		//spreads and winning teams
+		for (var i = 1; i <= home_teams.length; i++){
+				if (excel_output[1][i].indexOf("+") >= 0){
+						spreads[i-1] = Number(excel_output[1][i].substr(excel_output[1][i].indexOf("+")+1,excel_output[1][i].length));
+				} else if (excel_output[2][i].indexOf("+") >= 0){
+						spreads[i-1] = -1*Number(excel_output[2][i].substr(excel_output[2][i].indexOf("+")+1,excel_output[2][i].length));
+				}
+				if (home_scores[final_order[i-1]] - away_scores[final_order[i-1]] - spreads[i-1] > 0){winning_team[i-1] = 1;}//home team beats spread
+				else if (home_scores[final_order[i-1]] - away_scores[final_order[i-1]] - spreads[i-1] < 0){winning_team[i-1] = -1;}//away team beats spread
+				else {winning_team[i-1] = 0;} //draw
+				
+		}
+		//check to see if home or away picks
+		for (var c = 6; c < nCol; c++){
+				team_picks[c-6] = [];
+				correct_picks[c-6] = 0;
+				for (var r = 1; r<= home_teams.length; r++){
+						if (c < nCol - 1) {
+								if (excel_output[1][r].toUpperCase().indexOf(excel_output[c][r])>=0){team_picks[c-6][r-1] = -1;}
+								else if (excel_output[2][r].toUpperCase().indexOf(excel_output[c][r])>=0){team_picks[c-6][r-1] = 1;}
+						} else {
+								if (excel_output[1][r].toUpperCase().indexOf(excel_output[c][r].substr(0,excel_output[c][r].length-1))>=0){team_picks[c-6][r-1] = -1;}
+								else if (excel_output[2][r].toUpperCase().indexOf(excel_output[c][r].substr(0,excel_output[c][r].length-1))>=0){team_picks[c-6][r-1] = 1;}
+						}
+				}
+		}
+		//calculate total correct picks
+		for (var r = 0; r < home_teams.length; r++){
+				for (var c = 0; c < team_picks.length; c++){
+						if (team_picks[c][r] == winning_team[r] && game_status_code[final_order[r]] == 3){
+								correct_picks[c]++;
+						}
+				}
+		}
+		//sort total score
+		sorted_score = sortWithIndices(correct_picks.slice(0));
+		si = sorted_score.sortIndices;
+	   
+		
+		//monday points
+		for (var c = 6; c < nCol; c++){
+				mon_points.push(excel_output[c][home_teams.length + 1]);
+		}
+		
+		//total wins coming into week and final win total
+		for (var c = 6; c < nCol; c++){
+			   overall_wins.push(excel_output[c][home_teams.length + 6]);
+			   combined_wins.push(Number(overall_wins[c-6]) + Number(correct_picks[c-6]));
+		}
+		
+		//sort overall score
+		sorted_score_overall = sortWithIndices(combined_wins.slice(0));
+		si2 = sorted_score_overall.sortIndices;
+		
+		//create table
+		if (suf=="unsorted"){
+		$('#main_table').append( '<table>');
+		$('#main_table').append( '<tr>');
+		var table_headings = ['Away', [], 'Home', [], 'Spread', 'Status'];
+		for (var i  = 0; i<table_headings.length; i++){
+				if (i == 5) {
+						$('#main_table').append('<th class="vertical2"><div class="vertical2">' +table_headings[i] +'</div></th>');
+				} else {
+						$('#main_table').append('<th class="vertical"><div class="vertical">' +table_headings[i] +'</div></th>');
+				} 
+		}
+		for (var c = 6; c < nCol; c++){
+				$('#main_table').append('<th class="vertical"><div class="vertical">' + excel_output[c][0] +'</div></th>')
+		}
+		$('#main_table').append( '</tr>');
+		
+
+		for (var r = 0; r < home_teams.length; r++){
+				var table_info = [];
+				for (var c = 0; c < team_picks.length; c++){
+						if (team_picks[c][r] == winning_team[r] && game_status_code[final_order[r]] == 3){
+								table_info = table_info.concat('<td bgcolor="#00FF00">' + excel_output[c+6][r+1] + '</td>');
+						} else if (team_picks[c][r] == winning_team[r] && game_status_code[final_order[r]] == 2){
+								table_info = table_info.concat('<td bgcolor="#b3ffb3">' + excel_output[c+6][r+1] + '</td>');
+						} else if (team_picks[c][r] != winning_team[r] && game_status_code[final_order[r]] == 3){
+								table_info = table_info.concat('<td bgcolor="#FF0000">' + excel_output[c+6][r+1] + '</td>');
+						} else if (team_picks[c][r] != winning_team[r] && game_status_code[final_order[r]] == 2){
+								table_info = table_info.concat('<td bgcolor="#FFB2B2">' + excel_output[c+6][r+1] + '</td>');
+						} else {
+								table_info = table_info.concat('<td bgcolor="#FFFFFF">' + excel_output[c+6][r+1] + '</td>');
+						}
+				}
+				$('#main_table').append( '<tr><td bgcolor="#DFDFDF">' + team_code[main_order_away[r]] + '</td><td bgcolor="#DFDFDF">' + away_scores[final_order[r]] + '</td><td bgcolor="#DFDFDF">' + team_code[main_order_home[r]] + '</td><td bgcolor="#DFDFDF">' + home_scores[final_order[r]] + '</td><td bgcolor="#DFDFDF">' + spreads[r] + '</td><td bgcolor="#DFDFDF">' + game_status_text[final_order[r]] + '</td>' + table_info);
+				$('#main_table').append( '</tr>');
+		}
+		$('#main_table').append( '<tr>');
+		 for (var i  = 0; i<table_headings.length; i++){
+				if (i == table_headings.length - 1){
+						$('#main_table').append('<td class="bottom"><b>' + 'Week Total' +'</b></td>');
+				} else {
+						$('#main_table').append('<td class="bottom">' + '' +'</td>');
+				}
+		}
+		for (var c = 0; c < correct_picks.length; c++){
+				$('#main_table').append('<td class="bottom">' + correct_picks[c] +'</td>');
+		}
+		$('#main_table').append( '</tr>');
+		
+		 $('#main_table').append( '<tr>');
+		 for (var i  = 0; i<table_headings.length; i++){
+				if (i == table_headings.length - 1){
+						$('#main_table').append('<td class="bottom"><b>' + 'Overall Total' +'</b></td>');
+				} else {
+						$('#main_table').append('<td class="bottom">' + '' +'</td>');
+				}
+		}
+		for (var c = 0; c < correct_picks.length; c++){
+				$('#main_table').append('<td class="bottom">' + combined_wins[c] +'</td>');
+		}
+		$('#main_table').append( '</tr>');
+		
+		
+		
+		$('#main_table').append(  '</table>' );
+		$('#bottom_lines2').show();
+		$('#bottom_lines1').hide();
+		$('#bottom_lines3').hide();
+		
+		} else if (suf=="overall"){
+		//in overall ranking order
+		$('#main_table').append( '<table>');
+		$('#main_table').append( '<tr>');
+		var table_headings = ['Away', [], 'Home', [], 'Spread', 'Status'];
+		for (var i  = 0; i<table_headings.length; i++){
+				if (i == 5) {
+						$('#main_table').append('<th class="vertical2"><div class="vertical2">' +table_headings[i] +'</div></th>');
+				} else {
+						$('#main_table').append('<th class="vertical"><div class="vertical">' +table_headings[i] +'</div></th>');
+				} 
+		}
+		for (var c = nCol - 1; c >= 6; c--){
+				$('#main_table').append('<th class="vertical"><div class="vertical">' + excel_output[si2[c-6]+6][0] +'</div></th>')
+		}
+		$('#main_table').append( '</tr>');
+		for (var r = 0; r < home_teams.length; r++){
+				var table_info = [];
+				for (var c = team_picks.length - 1; c >= 0; c--){
+						if (team_picks[si2[c]][r] == winning_team[r] && game_status_code[final_order[r]] == 3){
+								table_info = table_info.concat('<td bgcolor="#00FF00">' + excel_output[si2[c]+6][r+1] + '</td>');
+						} else if (team_picks[si2[c]][r] == winning_team[r] && game_status_code[final_order[r]] == 2){
+								table_info = table_info.concat('<td bgcolor="#b3ffb3">' + excel_output[si2[c]+6][r+1] + '</td>');
+						} else if (team_picks[si2[c]][r] != winning_team[r] && game_status_code[final_order[r]] == 3){
+								table_info = table_info.concat('<td bgcolor="#FF0000">' + excel_output[si2[c]+6][r+1] + '</td>');
+						} else if (team_picks[si2[c]][r] != winning_team[r] && game_status_code[final_order[r]] == 2){
+								table_info = table_info.concat('<td bgcolor="#FFB2B2">' + excel_output[si2[c]+6][r+1] + '</td>');
+						} else {
+								table_info = table_info.concat('<td bgcolor="#FFFFFF">' + excel_output[si2[c]+6][r+1] + '</td>');
+						}
+				}
+				$('#main_table').append( '<tr><td bgcolor="#DFDFDF">' + team_code[main_order_away[r]] + '</td><td bgcolor="#DFDFDF">' + away_scores[final_order[r]] + '</td><td bgcolor="#DFDFDF">' + team_code[main_order_home[r]] + '</td><td bgcolor="#DFDFDF">' + home_scores[final_order[r]] + '</td><td bgcolor="#DFDFDF">' + spreads[r] + '</td><td bgcolor="#DFDFDF">' + game_status_text[final_order[r]] + '</td>' + table_info);
+				$('#main_table').append( '</tr>');
+		}
+		
+		//overall wins
+		$('#main_table').append( '<tr>');
+		for (var i  = 0; i<table_headings.length; i++){
+				if (i == table_headings.length - 1){
+						$('#main_table').append('<td class="bottom"><b>' + 'Overall Total' +'</b></td>');
+				} else {
+						$('#main_table').append('<td class="bottom">' + '' +'</td>');
+				}
+		}
+		for (var c = correct_picks.length - 1; c >= 0; c--){
+				$('#main_table').append('<td class="bottom">' + combined_wins[si2[c]] +'</td>');
+		}
+		$('#main_table').append( '</tr>');
+		
+		//overall rank
+		$('#main_table').append( '<tr>');
+		for (var i  = 0; i<table_headings.length; i++){
+				if (i == table_headings.length - 1){
+						$('#main_table').append('<td class="bottom"><b>' + 'Overall Rank' +'</b></td>');
+				} else {
+						$('#main_table').append('<td class="bottom">' + '' +'</td>');
+				}
+		}
+		var rank = 1;
+		var rcount = 1;
+		for (var c = combined_wins.length - 1; c >= 0; c--){
+				if (c==combined_wins.length - 1){$('#main_table').append('<td class="bottom">' + rank +'</td>');}
+				else if (combined_wins[si2[c]] == combined_wins[si2[c+1]]){
+						$('#main_table').append('<td class="bottom">' + rank +'</td>');
+						rcount++;
+				} else {
+						var rp = rank + rcount;
+						$('#main_table').append('<td class="bottom">' + rp +'</td>');
+						rcount = 1;
+						rank = rp + 0;
+				}
+		}
+		$('#main_table').append( '</tr>');
+		
+		$('#main_table').append(  '</table>' );
+		$('#bottom_lines3').show();
+		$('#bottom_lines2').hide();
+		$('#bottom_lines1').hide();
+	   
+		} else {
+		//in score order
+		$('#main_table').append( '<table>');
+		$('#main_table').append( '<tr>');
+		var table_headings = ['Away', [], 'Home', [], 'Spread', 'Status'];
+		for (var i  = 0; i<table_headings.length; i++){
+				if (i == 5) {
+						$('#main_table').append('<th class="vertical2"><div class="vertical2">' +table_headings[i] +'</div></th>');
+				} else {
+						$('#main_table').append('<th class="vertical"><div class="vertical">' +table_headings[i] +'</div></th>');
+				} 
+		}
+		for (var c = nCol - 1; c >= 6; c--){
+				$('#main_table').append('<th class="vertical"><div class="vertical">' + excel_output[si[c-6]+6][0] +'</div></th>')
+		}
+		$('#main_table').append( '</tr>');
+		for (var r = 0; r < home_teams.length; r++){
+				var table_info = [];
+				for (var c = team_picks.length - 1; c >= 0; c--){
+						if (team_picks[si[c]][r] == winning_team[r] && game_status_code[final_order[r]] == 3){
+								table_info = table_info.concat('<td bgcolor="#00FF00">' + excel_output[si[c]+6][r+1] + '</td>');
+						} else if (team_picks[si[c]][r] == winning_team[r] && game_status_code[final_order[r]] == 2){
+								table_info = table_info.concat('<td bgcolor="#b3ffb3">' + excel_output[si[c]+6][r+1] + '</td>');
+						} else if (team_picks[si[c]][r] != winning_team[r] && game_status_code[final_order[r]] == 3){
+								table_info = table_info.concat('<td bgcolor="#FF0000">' + excel_output[si[c]+6][r+1] + '</td>');
+						} else if (team_picks[si[c]][r] != winning_team[r] && game_status_code[final_order[r]] == 2){
+								table_info = table_info.concat('<td bgcolor="#FFB2B2">' + excel_output[si[c]+6][r+1] + '</td>');
+						} else {
+								table_info = table_info.concat('<td bgcolor="#FFFFFF">' + excel_output[si[c]+6][r+1] + '</td>');
+						}
+				}
+				$('#main_table').append( '<tr><td bgcolor="#DFDFDF">' + team_code[main_order_away[r]] + '</td><td bgcolor="#DFDFDF">' + away_scores[final_order[r]] + '</td><td bgcolor="#DFDFDF">' + team_code[main_order_home[r]] + '</td><td bgcolor="#DFDFDF">' + home_scores[final_order[r]] + '</td><td bgcolor="#DFDFDF">' + spreads[r] + '</td><td bgcolor="#DFDFDF">' + game_status_text[final_order[r]] + '</td>' + table_info);
+				$('#main_table').append( '</tr>');
+		}
+		
+		//monday points
+		$('#main_table').append( '<tr>');
+		for (var i  = 0; i<table_headings.length; i++){
+				if (i == table_headings.length - 1){
+						$('#main_table').append('<td bgcolor="#DFDFDF"><b>' + 'Mon Pts' +'</b></td>');
+				} else {
+						$('#main_table').append('<td bgcolor="#DFDFDF">' + '' +'</td>');
+				}
+		}
+		for (var c = correct_picks.length - 1; c >= 0; c--){
+				$('#main_table').append('<td bgcolor="#DFDFDF">' + mon_points[si[c]] +'</td>');
+		}
+		$('#main_table').append( '</tr>');
+		
+		//weekly points
+		$('#main_table').append( '<tr>');
+		for (var i  = 0; i<table_headings.length; i++){
+				if (i == table_headings.length - 1){
+						$('#main_table').append('<td class="bottom"><b>' + 'Week Total' +'</b></td>');
+				} else {
+						$('#main_table').append('<td class="bottom">' + '' +'</td>');
+				}
+		}
+		for (var c = correct_picks.length - 1; c >= 0; c--){
+				$('#main_table').append('<td class="bottom">' + correct_picks[si[c]] +'</td>');
+		}
+		$('#main_table').append( '</tr>');
+		
+		//weekly rank
+		$('#main_table').append( '<tr>');
+		for (var i  = 0; i<table_headings.length; i++){
+				if (i == table_headings.length - 1){
+						$('#main_table').append('<td class="bottom"><b>' + 'Week Rank' +'</b></td>');
+				} else {
+						$('#main_table').append('<td class="bottom">' + '' +'</td>');
+				}
+		}
+		var rank = 1;
+		var rcount = 1;
+		for (var c = correct_picks.length - 1; c >= 0; c--){
+				if (c==correct_picks.length - 1){$('#main_table').append('<td class="bottom">' + rank +'</td>');}
+				else if (correct_picks[si[c]] == correct_picks[si[c+1]]){
+						$('#main_table').append('<td class="bottom">' + rank +'</td>');
+						rcount++;
+				} else {
+						var rp = rank + rcount;
+						$('#main_table').append('<td class="bottom">' + rp +'</td>');
+						rcount = 1;
+						rank = rp + 0;
+				}
+		}
+		$('#main_table').append( '</tr>');
+		
+		$('#main_table').append(  '</table>' );
+		$('#bottom_lines1').show();
+		$('#bottom_lines2').hide();
+		$('#bottom_lines3').hide();
+		}
+		
+		$('#loading').hide();
+		$('#refresh').show();
+		$('#zoom').show();
+		setTimeout(function(){location.reload(true);}, 300000);
+
+});
+}
+
+/*
+function RunAll(){
+//completed games
+$.getJSON(url_post, function(json) {
+	ot = json;
+	big_string_post = ot.query.results.result;
+	
+	
+    $.getJSON(url_pre, function(json) {
+		ot2 = json;
+		big_string_pre = ot2.query.results.result;
+		
+		
+	
+	 $.getJSON(url_ingame, function(json) {
+	 	ot3 = json;
+		big_string_ingame = ot3.query.results.result;
+		
+		
+                   
+        //load excel sheet data
+        $.get(xl, function(data){
+        m = data;
+
+          
+                        });
+                });
+        });
+        });
+}
+*/
+
+
+function sortWithIndices(toSort) {
+  for (var i = 0; i < toSort.length; i++) {
+    toSort[i] = [toSort[i], i];
+  }
+  toSort.sort(function(left, right) {
+    return left[0] < right[0] ? -1 : 1;
+  });
+  toSort.sortIndices = [];
+  for (var j = 0; j < toSort.length; j++) {
+    toSort.sortIndices.push(toSort[j][1]);
+    toSort[j] = toSort[j][0];
+  }
+  return toSort;
+}
+
+</script>
+
+<style>
+
+div.vertical{
+ margin-left: -12px;
+ position: absolute;
+ width: 50px;
+ transform: rotate(-90deg);
+ -webkit-transform: rotate(-90deg); /* Safari/Chrome */
+ -moz-transform: rotate(-90deg); /* Firefox */
+ -o-transform: rotate(-90deg); /* Opera */
+ -ms-transform: rotate(-90deg); /* IE 9 */
+}
+
+div.vertical2{
+ margin-left: 10px;
+ position: absolute;
+ width: 50px;
+ transform: rotate(-90deg);
+ -webkit-transform: rotate(-90deg); /* Safari/Chrome */
+ -moz-transform: rotate(-90deg); /* Firefox */
+ -o-transform: rotate(-90deg); /* Opera */
+ -ms-transform: rotate(-90deg); /* IE 9 */
+}
+
+th.vertical{
+ padding-top: 30px;
+ line-height: 30px;
+ padding-bottom: 50px;
+ font-size: 12px;
+ text-align: left;
+ background: #404040;
+ /*background: linear-gradient(#333 0%,#444 100%);*/
+ color: #FFFFFF;
+ border: 0px solid #000;
+}
+
+th.vertical2{
+ padding-top: 30px;
+ line-height: 30px;
+ padding-bottom: 50px;
+ font-size: 12px;
+ text-align: left;
+ background: #404040;
+ /*background: linear-gradient(#333 0%,#444 100%);*/
+ color: #FFFFFF;
+ border: 0px solid #000;
+}
+
+td {
+text-align:center;
+font-size: 10px;
+padding: 4px;
+border: 0px solid #000;
+ white-space: nowrap;
+  overflow: hidden;
+}
+
+td.bottom {
+text-align:center;
+font-size: 11px;
+color: #FFFFFF;
+padding: 4px;
+border: 0px solid #000;
+background: #404040;
+/*background: linear-gradient(#333 0%,#444 100%);*/
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+#loading{
+	text-align: center;
+	font-weight: bold;
+	font-size: 36px;
+}
+
+#bottom_lines1 {
+	text-align: center;
+	font-weight: bold;
+	font-size: 26px;
+	display:none;
+}
+
+#bottom_lines2 {
+	text-align: center;
+	font-weight: bold;
+	font-size: 26px;
+	display:none;
+}
+
+#bottom_lines3 {
+	text-align: center;
+	font-weight: bold;
+	font-size: 26px;
+	display:none;
+}
+
+#refresh {
+	font-weight: bold;
+	font-size: 14px;
+        display:none;
+}
+#zoom {
+	font-weight: bold;
+	font-size: 14px;
+        display:none;
+}
+</style>
+
+<body>
+
+<div id="loading">Loading...</div>
+<div id="main_table"></div>
+<div id="bottom_lines1"><p>Week | <a href = 'https://fbpool2017.github.io?overall'>Overall</a> | <a href = 'https://fbpool2017.github.io?unsorted'>Unsorted</a></p></div>
+<div id="bottom_lines2"><p><a href = 'https://fbpool2017.github.io'>Week</a> | <a href = 'https://fbpool2017.github.io?overall'>Overall</a> | Unsorted</p></div>
+<div id="bottom_lines3"><p><a href = 'https://fbpool2017.github.io'>Week</a> | Overall | <a href = 'https://fbpool2017.github.io?unsorted'>Unsorted</a> </p></div>
+<div id="refresh">Page reloads automatically every 5 minutes.</div>
+<div id="zoom">To zoom in/out: Control +/- (PC), Command +/- (Mac)</div>
+
+
+
+</body>
