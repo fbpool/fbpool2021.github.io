@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>NFL 2018 Picks</title>
+	<title>NFL 2019 Picks</title>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 
 
@@ -16,27 +16,19 @@
 
 
 <script>
-//https://www.dropbox.com/s/aft0rvho74q1pk8/picks.csv.csv?dl=0
-	//https://www.dropbox.com/s/6xl0hbzvpf2p6sl/picks.csv?dl=0
-var xl = 'https://dl.dropboxusercontent.com/s/6xl0hbzvpf2p6sl/picks?raw=1';
-//var xl = 'https://dl.dropboxusercontent.com/s/aft0rvho74q1pk8/picks.csv?raw=1';
-//https://www.dropbox.com/s/b43j8rev8ba5q1j/picks.csv?dl=0
+
+var xl = 'https://dl.dropboxusercontent.com/s/7ti222pu6dsxwmj/picks.csv?raw=1';
 var m = [];
 var nCol = 56;
 var excel_output = [];
 var pageURL = window.location.href;
 var suf = pageURL.substring(pageURL.indexOf("?")+1, pageURL.length);
 
-//var OLD OLDrl_post = "https://query.yahooapis.com/v1/public/yql?q=SELECT%20*%20FROM%20html%20%0AWHERE%20url%3D%22http%3A%2F%2Fwww.cbssports.com%2Fnfl%2Fscoreboard%2F%22%20%0AAND%20xpath%3D%22%2F%2Fdiv%5B%40class%3D'col-4%20single-score-card'%5D%22&format=json&diagnostics=true&callback=";
-//var OLDurl_post = "https://query.yahooapis.com/v1/public/yql?q=SELECT%20*%20FROM%20html%20%0AWHERE%20url%3D%22http%3A%2F%2Fwww.cbssports.com%2Fnfl%2Fscoreboard%2F%22%20%0AAND%20xpath%3D%22%2F%2Fdiv[%40class%3D%27single-score-card%20%20postgame%27]%22&format=json&diagnostics=true&callback=";
-//var OLDurl_pre = "https://query.yahooapis.com/v1/public/yql?q=SELECT%20*%20FROM%20html%20%0AWHERE%20url%3D%22http%3A%2F%2Fwww.cbssports.com%2Fnfl%2Fscoreboard%2F%22%20%0AAND%20xpath%3D%22%2F%2Fdiv[%40class%3D%27single-score-card%20%20pregame%27]%22&format=json&diagnostics=true&callback=";
+var url_post = 'https://dl.dropboxusercontent.com/s/8o1yyeggmogvvlr/postgame.txt?raw=1';
+var url_ingame = 'https://dl.dropboxusercontent.com/s/b2bd0p2ywqg1mzm/ingame.txt?raw=1';
+var url_pre = 'https://dl.dropboxusercontent.com/s/fjgo9mfewir33z3/pregame.txt?raw=1';
 
-//yql: select * from htmlstring where url='https://www.cbssports.com/nfl/scoreboard/' and xpath="//div[@class='single-score-card  pregame nfl']"
-var url_pre = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20htmlstring%20where%20url%3D'https%3A%2F%2Fwww.cbssports.com%2Fnfl%2Fscoreboard%2F'%20and%20xpath%3D%22%2F%2Fdiv%5B%40class%3D'single-score-card%20%20pregame%20nfl'%5D%22&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=";
-//yqlselect * from htmlstring where url='https://www.cbssports.com/nfl/scoreboard/' and xpath="//div[@class='single-score-card  postgame nfl']"
-var url_post = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20htmlstring%20where%20url%3D'https%3A%2F%2Fwww.cbssports.com%2Fnfl%2Fscoreboard%2F'%20and%20xpath%3D%22%2F%2Fdiv%5B%40class%3D'single-score-card%20%20postgame%20nfl'%5D%22&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=";
-
-var url_ingame = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20htmlstring%20where%20url%3D'https%3A%2F%2Fwww.cbssports.com%2Fnfl%2Fscoreboard%2F'%20and%20xpath%3D%22%2F%2Fdiv%5B%40class%3D'single-score-card%20%20ingame%20nfl'%5D%22&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=";
+var last_update = '';
 
 var ot = [];
 var ot2 = [];
@@ -87,10 +79,10 @@ var x = [];
 var fb_test = [];
 
 function RunAll() {
-            $.getJSON(url_post, function(json) {
+             $.get(url_post, function(data) {
                 console.log("success1");
-                ot = json;
-				big_string_post = ot.query.results.result;
+                ot = data;
+				big_string_post = ot;
 				
 				//team names
 				var marker = 'https://www.cbssports.com/nfl/teams/';
@@ -142,6 +134,12 @@ function RunAll() {
 					}
 				}
 				
+				//last update
+				var marker = '<lastupdate>';
+				i = big_string_post.indexOf(marker)  + marker.length;
+				i2 = big_string_post.indexOf('</lastupdate>')
+				last_update = big_string_post.substring(i, i2)
+				
 				//next function
 				RunPre();
             }).fail(function(d) {
@@ -151,10 +149,10 @@ function RunAll() {
 }
 
 function RunPre() {
-            $.getJSON(url_pre, function(json) {
+             $.get(url_pre, function(data) {
                 console.log("success2");
-                ot2 = json;
-				big_string_pre = ot2.query.results.result;
+                ot2 = data;
+				big_string_pre = ot2;
 		
 				//team names
 				s1 = [];
@@ -178,7 +176,7 @@ function RunPre() {
 				//game status
 				s1 = [];
 				s2 = [];
-				var marker = 'formatForToday&quot;: &quot;h:mma&quot; }">';
+				var marker = '"formatForToday": "h:mma" }\'>';
 				i = big_string_pre.indexOf(marker)  + marker.length ;
 				var count = 0;
 				while(i >= marker.length ) {
@@ -219,10 +217,10 @@ function RunPre() {
 }
 
 function RunInGame() {
-            $.getJSON(url_ingame, function(json) {
+            $.get(url_ingame, function(data) {
                 console.log("success3");
-                ot3 = json;
-				big_string_ingame = ot3.query.results.result;
+                ot3 = data;
+				big_string_ingame = ot3;
 		
 				//team names
 				s1 = [];
@@ -334,7 +332,6 @@ function Run_Excel(){
         m = data;
 
         fb_test = m.indexOf('\n');
-        
         
         if (fb_test == -1){
 			m = m.replace(/\r/g, ",");
@@ -670,8 +667,10 @@ function Run_Excel(){
 		
 		$('#loading').hide();
 		$('#refresh').show();
+		$('#lastupdate').text('Last update: ' + last_update);
+		$('#lastupdate').show();
 		$('#zoom').show();
-		setTimeout(function(){location.reload(true);}, 300000);
+		setTimeout(function(){location.reload(true);}, 300000/5);
 
 });
 }
@@ -831,6 +830,13 @@ table {
 	font-size: 14px;
         display:none;
 }
+
+#lastupdate {
+	font-weight: bold;
+	font-size: 14px;
+        display:none;
+}
+
 #zoom {
 	font-weight: bold;
 	font-size: 14px;
@@ -846,6 +852,7 @@ table {
 <div id="bottom_lines2"><p><a href = 'https://fbpool2018.github.io'>Week</a> | <a href = 'https://fbpool2018.github.io?overall'>Overall</a> | Unsorted</p></div>
 <div id="bottom_lines3"><p><a href = 'https://fbpool2018.github.io'>Week</a> | Overall | <a href = 'https://fbpool2018.github.io?unsorted'>Unsorted</a> </p></div>
 <div id="refresh">Page reloads automatically every 5 minutes.</div>
+<div id="lastupdate"></div>
 <div id="zoom">To zoom in/out: Control +/- (PC), Command +/- (Mac)</div>
 
 
