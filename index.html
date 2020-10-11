@@ -101,6 +101,27 @@ function RunAll() {
 					i = big_string_post.indexOf(marker, i+1) + marker.length;
 				}
 	
+				
+				//game status
+				s1 = [];
+				s2 = [];
+				var marker = '<div class="game-status postgame">';
+				i = big_string_post.indexOf(marker) + marker.length;
+
+				var count = 0;
+				while(i >= marker.length ) {
+					tmp_string = [];
+					count++;
+					s1.push(i);
+					i = big_string_post.indexOf('</div>', i+1);
+					s2.push(i);
+					
+					game_status_text.push(big_string_post.substring(s1[s1.length-1], s2[s2.length-1]));
+			
+					i = big_string_post.indexOf(marker, i+1)  + marker.length;
+				}
+	
+	
 				//team scores
 				s1 = [];
 				s2 = [];
@@ -118,6 +139,12 @@ function RunAll() {
 		
 					i = big_string_post.indexOf(marker, i+1) + marker.length;
 				}
+				
+				which_postponed = game_status_text.indexOf('POSTPONED');
+				score_code.splice(2*(which_postponed), 0, '0');
+				score_code.splice(2*(which_postponed), 0, '0');
+				
+				
 	
 				//organize everything properly
 				for (var team = 0; team < team_code_post.length; team++){
@@ -129,7 +156,7 @@ function RunAll() {
 						home_scores.push(score_code[team]);
 			
 						//overall game stuff
-						game_status_text.push('Final');
+						//game_status_text.push('Final');
 						game_status_code.push(3);
 						differential.push(home_scores[home_scores.length -1] - away_scores[away_scores.length - 1]);
 					}
