@@ -100,7 +100,7 @@ function RunAll() {
 		game_data.homeScore[g] = json_data.events[g].competitions[0].competitors[0].score
 		game_data.awayScore[g] = json_data.events[g].competitions[0].competitors[1].score
 		game_data.differential[g] = game_data.homeScore[g] - game_data.awayScore[g]
-		game_data.message[g] = json_data.events[g].status.type.detail
+		game_data.message[g] = json_data.events[g].status.type.shortDetail
 		game_data.status[g] = json_data.events[g].status.type.state
 		//some edits for games that haven't started
 		if (game_data.status[g] == 'pre'){
@@ -246,11 +246,11 @@ function Run_Excel(){
 				for (var c = 0; c < team_picks.length; c++){
 						if (team_picks[c][r] == winning_team[r] && game_data.status[final_order[r]] == 'post'){
 								table_info = table_info.concat('<td bgcolor="#00FF00">' + excel_output[c+6][r+1] + '</td>');
-						} else if (team_picks[c][r] == winning_team[r] && game_data.status[final_order[r]] == 'ingame'){
+						} else if (team_picks[c][r] == winning_team[r] && game_data.status[final_order[r]] == 'in'){
 								table_info = table_info.concat('<td bgcolor="#b3ffb3">' + excel_output[c+6][r+1] + '</td>');
 						} else if (team_picks[c][r] != winning_team[r] && game_data.status[final_order[r]] == 'post'){
 								table_info = table_info.concat('<td bgcolor="#FF0000">' + excel_output[c+6][r+1] + '</td>');
-						} else if (team_picks[c][r] != winning_team[r] && game_data.status[final_order[r]] == 'ingame'){
+						} else if (team_picks[c][r] != winning_team[r] && game_data.status[final_order[r]] == 'in'){
 								table_info = table_info.concat('<td bgcolor="#FFB2B2">' + excel_output[c+6][r+1] + '</td>');
 						} else {
 								table_info = table_info.concat('<td bgcolor="#FFFFFF">' + excel_output[c+6][r+1] + '</td>');
@@ -313,11 +313,11 @@ function Run_Excel(){
 				for (var c = team_picks.length - 1; c >= 0; c--){
 						if (team_picks[si2[c]][r] == winning_team[r] && game_data.status[final_order[r]] == 'post'){
 								table_info = table_info.concat('<td bgcolor="#00FF00">' + excel_output[si2[c]+6][r+1] + '</td>');
-						} else if (team_picks[si2[c]][r] == winning_team[r] && game_data.status[final_order[r]] == 'ingame'){
+						} else if (team_picks[si2[c]][r] == winning_team[r] && game_data.status[final_order[r]] == 'in'){
 								table_info = table_info.concat('<td bgcolor="#b3ffb3">' + excel_output[si2[c]+6][r+1] + '</td>');
 						} else if (team_picks[si2[c]][r] != winning_team[r] && game_data.status[final_order[r]] == 'post'){
 								table_info = table_info.concat('<td bgcolor="#FF0000">' + excel_output[si2[c]+6][r+1] + '</td>');
-						} else if (team_picks[si2[c]][r] != winning_team[r] && game_data.status[final_order[r]] == 'ingame'){
+						} else if (team_picks[si2[c]][r] != winning_team[r] && game_data.status[final_order[r]] == 'in'){
 								table_info = table_info.concat('<td bgcolor="#FFB2B2">' + excel_output[si2[c]+6][r+1] + '</td>');
 						} else {
 								table_info = table_info.concat('<td bgcolor="#FFFFFF">' + excel_output[si2[c]+6][r+1] + '</td>');
@@ -392,11 +392,11 @@ function Run_Excel(){
 				for (var c = team_picks.length - 1; c >= 0; c--){
 						if (team_picks[si[c]][r] == winning_team[r] && game_data.status[final_order[r]] == 'post'){
 								table_info = table_info.concat('<td bgcolor="#00FF00">' + excel_output[si[c]+6][r+1] + '</td>');
-						} else if (team_picks[si[c]][r] == winning_team[r] && game_data.status[final_order[r]] == 'ingame'){
+						} else if (team_picks[si[c]][r] == winning_team[r] && game_data.status[final_order[r]] == 'in'){
 								table_info = table_info.concat('<td bgcolor="#b3ffb3">' + excel_output[si[c]+6][r+1] + '</td>');
 						} else if (team_picks[si[c]][r] != winning_team[r] && game_data.status[final_order[r]] == 'post'){
 								table_info = table_info.concat('<td bgcolor="#FF0000">' + excel_output[si[c]+6][r+1] + '</td>');
-						} else if (team_picks[si[c]][r] != winning_team[r] && game_data.status[final_order[r]] == 'ingame'){
+						} else if (team_picks[si[c]][r] != winning_team[r] && game_data.status[final_order[r]] == 'in'){
 								table_info = table_info.concat('<td bgcolor="#FFB2B2">' + excel_output[si[c]+6][r+1] + '</td>');
 						} else {
 								table_info = table_info.concat('<td bgcolor="#FFFFFF">' + excel_output[si[c]+6][r+1] + '</td>');
@@ -473,36 +473,6 @@ function Run_Excel(){
 });
 }
 
-/*
-function RunAll(){
-//completed games
-$.getJSON(url_post, function(json) {
-	ot = json;
-	big_string_post = ot.query.results.result;
-	
-	
-    $.getJSON(url_pre, function(json) {
-		ot2 = json;
-		big_string_pre = ot2.query.results.result;
-		
-		
-	
-	 $.getJSON(url_ingame, function(json) {
-	 	ot3 = json;
-		big_string_ingame = ot3.query.results.result;
-		
-		
-                   
-        //load excel sheet data
-        $.get(xl, function(data){
-        m = data;
-          
-                        });
-                });
-        });
-        });
-}
-*/
 
 
 function sortWithIndices(toSort) {
