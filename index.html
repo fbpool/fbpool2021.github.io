@@ -9,7 +9,15 @@
 </head>
 
 <script type="text/javascript">
-  window.onload = function() { RunAll() };
+  window.onload = function() { 
+  fetch('https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard')
+		.then(response => response.json())
+		.then(data => {
+  		json_data = data;
+  		RunAll(); // Prints result from `response.json()` in getRequest
+	})
+	.catch(error => console.error(error))
+	 };
 
 
 
@@ -24,12 +32,7 @@ var nCol = 57;
 var excel_output = [];
 var pageURL = window.location.href;
 var suf = pageURL.substring(pageURL.indexOf("?")+1, pageURL.length);
-
-var url_post = 'https://dl.dropboxusercontent.com/s/8o1yyeggmogvvlr/postgame.txt?raw=1';
-var url_ingame = 'https://dl.dropboxusercontent.com/s/b2bd0p2ywqg1mzm/ingame.txt?raw=1';
-var url_pre = 'https://dl.dropboxusercontent.com/s/fjgo9mfewir33z3/pregame.txt?raw=1';
-
-var last_update = '';
+var json_data = [];
 
 var ot = [];
 var ot2 = [];
@@ -43,8 +46,8 @@ var differential = [];
 var nGames = [];
 //var team_full = ["Carolina", "Philadelphia", "Indianapolis", "New Orleans", "Giants", "Houston", "Washington", "Cleveland", "Jets", "Kansas City", "Pittsburgh", "Tennessee", "San Francisco", "Tampa Bay", "Minnesota", "Arizona", "Miami", "Baltimore", "Chicago", "New England", "Jacksonville", "Denver", "Detroit", "Buffalo", "Atlanta", "Seattle", "Green Bay", "Los Angeles", "Dallas", "Cincinnati", "Oakland", "Los Angeles"];
 //var team_full = ["Panthers", "Eagles", "Colts", "Saints", "Giants", "Texans", "Football Team", "Browns", "Jets", "Chiefs", "Steelers", "Titans", "49ers", "Buccaneers", "Vikings", "Cardinals", "Dolphins", "Ravens", "Bears", "Patriots", "Jaguars", "Broncos", "Lions", "Bills", "Falcons", "Seahawks", "Packers", "Rams", "Cowboys", "Bengals", "Raiders", "Chargers"];
-var team_code = ["CAR", "PHI", "IND", "NO", "NYG", "HOU", "WAS", "CLE", "NYJ", "KC", "PIT", "TEN", "SF", "TB", "MIN", "AZ", "MIA", "BAL", "CHI", "NE", "JAX", "DEN", "DET", "BUF", "ATL", "SEA", "GB", "LAR", "DAL", "CIN", "LV", "LAC"]; 
-var team_full = ["CAR", "PHI", "IND", "NO", "NYG", "HOU", "WAS", "CLE", "NYJ", "KC", "PIT", "TEN", "SF", "TB", "MIN", "ARI", "MIA", "BAL", "CHI", "NE", "JAC", "DEN", "DET", "BUF", "ATL", "SEA", "GB", "LAR", "DAL", "CIN", "LV", "LAC"]; 
+var team_code = ["CAR", "PHI", "IND", "NO", "NYG", "HOU", "WAS", "CLE", "NYJ", "KC", "PIT", "TEN", "SF", "TB", "MIN", "AZ",   "MIA", "BAL", "CHI", "NE", "JAX", "DEN", "DET", "BUF", "ATL", "SEA", "GB", "LAR", "DAL", "CIN", "LV", "LAC"]; 
+var team_full = ["CAR", "PHI", "IND", "NO", "NYG", "HOU", "WSH", "CLE", "NYJ", "KC", "PIT", "TEN", "SF", "TB", "MIN", "ARI",  "MIA", "BAL", "CHI", "NE", "JAX", "DEN", "DET", "BUF", "ATL", "SEA", "GB", "LAR", "DAL", "CIN", "LV", "LAC"]; 
 
 var main_order_home = [];
 var main_order_away = [];
@@ -72,291 +75,57 @@ var score_code = [];
 var score_code_ingame = [];
 var tmp_string = [];
 var tmp_string_list = [];
+var game_data = {awayTeam:[], 
+				 homeTeam:[], 
+				 awayScore:[], 
+				 homeScore:[],
+				 differential:[],
+				 status:[],
+				 message:[]};
 
 for (var i = 0; i < team_code.length; i++){
         team_code_lower[i] = team_code[i].toLowerCase();
 }
 var x = [];
 var fb_test = [];
+var numGames = [];
 
 function RunAll() {
-             $.get(url_post, function(data) {
-                console.log("success1");
-                ot = data;
-				big_string_post = ot;
-				
-				//team names
-				var marker = 'https://www.cbssports.com/nfl/teams/';
-				i = big_string_post.indexOf(marker)  + marker.length ;
-				var count = 0;
-				while(i >= marker.length ) {
-					count++;
-					s1.push(i);
-					i = big_string_post.indexOf('/', i+1);
+	//parse json object
+	numGames = json_data.events.length;
+	for (g = 0; g < numGames; g++){
+		//load main data (teams, scores, score differential, game status message, game status)
+		game_data.homeTeam[g] = json_data.events[g].competitions[0].competitors[0].team.abbreviation
+		game_data.awayTeam[g] = json_data.events[g].competitions[0].competitors[1].team.abbreviation
+		game_data.homeScore[g] = json_data.events[g].competitions[0].competitors[0].score
+		game_data.awayScore[g] = json_data.events[g].competitions[0].competitors[1].score
+		game_data.differential[g] = game_data.homeScore[g] - game_data.awayScore[g]
+		game_data.message[g] = json_data.events[g].status.type.detail
+		game_data.status[g] = json_data.events[g].status.type.state
+		//some edits for games that haven't started
+		if (game_data.status[g] == 'pre'){
+			//have pregame scores appear blank instead of 0
+			game_data.homeScore[g] = []
+			game_data.awayScore[g] = []
+			//shorten game message for games that haven't started
+			game_data.message[g] = game_data.message[g].replace(',', '')
+			game_data.message[g] = game_data.message[g].replace('th', '')
+			game_data.message[g] = game_data.message[g].replace('at', '')
+			game_data.message[g] = game_data.message[g].replace('September ', '9/')
+			game_data.message[g] = game_data.message[g].replace('October ', '10/')
+			game_data.message[g] = game_data.message[g].replace('November ', '11/')
+			game_data.message[g] = game_data.message[g].replace('December ', '12/')
+			game_data.message[g] = game_data.message[g].replace('January ', '1/')
+			game_data.message[g] = game_data.message[g].replace(' EDT', '')
+			game_data.message[g] = game_data.message[g].replace(' EDS', '')
+		}
 		
-					s2.push(i);
-					if (count%2 == 1){
-						team_code_post.push(big_string_post.substring(s1[s1.length-1], s2[s2.length-1]));
-					}
-					i = big_string_post.indexOf(marker, i+1) + marker.length;
-				}
-	
-				
-				//game status
-				s1 = [];
-				s2 = [];
-				var marker = '<div class="game-status postgame">';
-				i = big_string_post.indexOf(marker) + marker.length;
-
-				var count = 0;
-				while(i >= marker.length ) {
-					tmp_string = [];
-					count++;
-					s1.push(i);
-					i = big_string_post.indexOf('</div>', i+1);
-					s2.push(i);
-					
-					game_status_text.push(big_string_post.substring(s1[s1.length-1], s2[s2.length-1]));
-			
-					i = big_string_post.indexOf(marker, i+1)  + marker.length;
-				}
-	
-	
-				//team scores
-				s1 = [];
-				s2 = [];
-				var marker = '<td class="total-score">';
-				i = big_string_post.indexOf(marker)  + marker.length ;
-				var count = 0;
-				while(i >= marker.length ) {
-					count++;
-					s1.push(i);
-					i = big_string_post.indexOf('<', i+1);
 		
-					s2.push(i);
 		
-					score_code.push(big_string_post.substring(s1[s1.length-1], s2[s2.length-1]));
-		
-					i = big_string_post.indexOf(marker, i+1) + marker.length;
-				}
-				
-				which_postponed = game_status_text.indexOf('POSTPONED');
-				score_code.splice(2*(which_postponed), 0, '0');
-				score_code.splice(2*(which_postponed), 0, '0');
-				
-		     		which_postponed = game_status_text.indexOf('CANCELLED');
-				score_code.splice(2*(which_postponed), 0, '0');
-				score_code.splice(2*(which_postponed), 0, '0');
-				
-	
-				//organize everything properly
-				for (var team = 0; team < team_code_post.length; team++){
-					if (team%2 == 0){
-						away_teams.push(team_code_post[team]);
-						away_scores.push(score_code[team]);
-					} else {
-						home_teams.push(team_code_post[team]);
-						home_scores.push(score_code[team]);
-			
-						//overall game stuff
-						//game_status_text.push('Final');
-						game_status_code.push(3);
-						differential.push(home_scores[home_scores.length -1] - away_scores[away_scores.length - 1]);
-					}
-				}
-				
-				//last update
-				var marker = '<lastupdate>';
-				i = big_string_post.indexOf(marker)  + marker.length;
-				i2 = big_string_post.indexOf('</lastupdate>')
-				last_update = big_string_post.substring(i, i2)
-				
-				//next function
-				RunPre();
-            }).fail(function(d) {
-                console.log("error");
-                RunAll();
-            })
+	}
+	Run_Excel();          
 }
 
-function RunPre() {
-             $.get(url_pre, function(data) {
-                console.log("success2");
-                ot2 = data;
-				big_string_pre = ot2;
-		
-				//team names
-				s1 = [];
-				s2 = [];
-				team_code_pre = [];
-				var marker = 'https://www.cbssports.com/nfl/teams/';
-				i = big_string_pre.indexOf(marker)  + marker.length ;
-				var count = 0;
-				while(i >= marker.length ) {
-					count++;
-					s1.push(i);
-					i = big_string_pre.indexOf('/', i+1);
-		
-					s2.push(i);
-					if (count%2 == 1){
-						team_code_pre.push(big_string_pre.substring(s1[s1.length-1], s2[s2.length-1]));
-					}
-					i = big_string_pre.indexOf(marker, i+1) + marker.length;
-				}
-	
-				//game status
-				s1 = [];
-				s2 = [];
-				var marker = '"formatForToday": "h:mma" }\'>';
-				i = big_string_pre.indexOf(marker)  + marker.length ;
-				var count = 0;
-				while(i >= marker.length ) {
-					count++;
-					s1.push(i);
-					i = big_string_pre.indexOf('<', i+1);
-		
-					s2.push(i);
-			
-					game_status_text.push(big_string_pre.substring(s1[s1.length-1], s2[s2.length-1]));
-					game_status_text[game_status_text.length - 1] = game_status_text[game_status_text.length - 1].trim();
-			
-					i = big_string_pre.indexOf(marker, i+1) + marker.length;
-			
-				}
-	
-				//organize everything properly
-				for (var team = 0; team < team_code_pre.length; team++){
-					if (team%2 == 0){
-						away_teams.push(team_code_pre[team]);
-					} else {
-						home_teams.push(team_code_pre[team]);
-			
-						//overall game stuff
-						game_status_code.push(1);
-						away_scores.push([]);
-						home_scores.push([]);
-						differential.push([] - []);
-					}
-				}
-				
-				//next function
-				RunInGame();
-            }).fail(function(d) {
-                console.log("error");
-                RunPre();
-            })
-}
-
-function RunInGame() {
-            $.get(url_ingame, function(data) {
-                console.log("success3");
-                ot3 = data;
-				big_string_ingame = ot3;
-		
-				//team names
-				s1 = [];
-				s2 = [];
-				team_code_ingame = [];
-				var marker = 'https://www.cbssports.com/nfl/teams/';
-				i = big_string_ingame.indexOf(marker)  + marker.length ;
-				var count = 0;
-				while(i >= marker.length ) {
-					count++;
-					s1.push(i);
-					i = big_string_ingame.indexOf('/', i+1);
-		
-					s2.push(i);
-					if (count%2 == 1){
-						team_code_ingame.push(big_string_ingame.substring(s1[s1.length-1], s2[s2.length-1]));
-					}
-					i = big_string_ingame.indexOf(marker, i+1) + marker.length;
-				}
-	
-				//team scores
-				s1 = [];
-				s2 = [];
-				var marker = '<td class="total-score">';
-				i = big_string_ingame.indexOf(marker)  + marker.length ;
-				var count = 0;
-				while(i >= marker.length ) {
-					count++;
-					s1.push(i);
-					i = big_string_ingame.indexOf('<', i+1);
-		
-					s2.push(i);
-		
-					score_code_ingame.push(big_string_ingame.substring(s1[s1.length-1], s2[s2.length-1]));
-		
-					i = big_string_ingame.indexOf(marker, i+1) + marker.length;
-				}
-		
-				//game status
-				s1 = [];
-				s2 = [];
-				var marker = '<div class="game-status';
-				i = big_string_ingame.indexOf(marker) + marker.length;
-
-				var count = 0;
-				while(i >= marker.length ) {
-					tmp_string = [];
-					count++;
-					s1.push(i);
-					i = big_string_ingame.indexOf('</div>', i+1);
-					s2.push(i);
-			
-					tmp_string = big_string_ingame.substring(s1[s1.length-1], s2[s2.length-1]);
-					
-			
-					if (tmp_string.indexOf('emphasis') >= 0){
-						tmp_string_list.push(tmp_string);
-						tmp_string = tmp_string.trim();
-						tmp_string = tmp_string.replace(/\s+/g, '');
-						tmp_string = tmp_string.replace('<span>', '');
-						tmp_string = tmp_string.replace('<divclass="game-status', '');
-						tmp_string = tmp_string.replace('<div class="game-status">', '');
-						tmp_string = tmp_string.replace('<divclass="game-status', '');
-						tmp_string = tmp_string.replace('emphasis">', '');
-						tmp_string = tmp_string.replace('</span>', ' ');
-						game_status_text.push(tmp_string);
-					} else if (tmp_string.indexOf('on') < 0 && tmp_string.indexOf('two') < 0 && tmp_string.indexOf('TOUCHDOWN') < 0 && tmp_string.indexOf('Touchdown') < 0 && tmp_string.indexOf('Kickoff') < 0){
-						tmp_string_list.push(tmp_string);
-						tmp_string = tmp_string.trim();
-						tmp_string = tmp_string.replace(/\s+/g, '');
-						tmp_string = tmp_string.replace('<span>', '');
-						tmp_string = tmp_string.replace('">', '');
-						tmp_string = tmp_string.replace('</span>', '');
-						tmp_string = tmp_string.replace('<divclass="game-status', '');
-						tmp_string = tmp_string.replace('<div class="game-status">', '');
-						tmp_string = tmp_string.replace('<divclass="game-status', '');
-						game_status_text.push(tmp_string);
-					}
-			
-					i = big_string_ingame.indexOf(marker, i+1);  + marker.length;
-				}
-	
-				//organize everything properly
-				for (var team = 0; team < team_code_ingame.length; team++){
-					if (team%2 == 0){
-						away_teams.push(team_code_ingame[team]);
-						away_scores.push(score_code_ingame[team]);
-					} else {
-						home_teams.push(team_code_ingame[team]);
-						home_scores.push(score_code_ingame[team]);
-		
-						//overall game stuff
-						game_status_code.push(2);
-						differential.push(home_scores[home_scores.length -1] - away_scores[away_scores.length - 1]);
-					}
-				}
-				
-				//next function
-			
-				Run_Excel();
-            }).fail(function(d) {
-                console.log("error");
-                RunInGame();
-            })
-}
 
 function Run_Excel(){
 	$.get(xl, function(data){
@@ -378,7 +147,7 @@ function Run_Excel(){
 				excel_output[i%nCol].push(m[i]);
 		}
 		//figure out game order
-		for (var j = 1; j <= home_teams.length; j++){
+		for (var j = 1; j <= numGames; j++){
 				for (var k = 0; k < team_code.length; k++){
 						if (excel_output[2][j].toUpperCase().indexOf(team_code[k]) >= 0){
 								main_order_home[j-1]  = k;
@@ -392,23 +161,23 @@ function Run_Excel(){
 						} 
 				}
 		}
-		for (var k = 0; k < home_teams.length; k++){
-				for (var j = 0; j < home_teams.length; j++){
-						if (home_teams[j].indexOf(team_full[main_order_home[k]]) >= 0){
+		for (var k = 0; k < numGames; k++){
+				for (var j = 0; j < numGames; j++){
+						if (game_data.homeTeam[j].indexOf(team_full[main_order_home[k]]) >= 0){
 								final_order[k] = j;
 								break;
 						}
 				}
 		}
 		//spreads and winning teams
-		for (var i = 1; i <= home_teams.length; i++){
+		for (var i = 1; i <= numGames; i++){
 				if (excel_output[1][i].indexOf("+") >= 0){
 						spreads[i-1] = Number(excel_output[1][i].substr(excel_output[1][i].indexOf("+")+1,excel_output[1][i].length));
 				} else if (excel_output[2][i].indexOf("+") >= 0){
 						spreads[i-1] = -1*Number(excel_output[2][i].substr(excel_output[2][i].indexOf("+")+1,excel_output[2][i].length));
 				}
-				if (home_scores[final_order[i-1]] - away_scores[final_order[i-1]] - spreads[i-1] > 0){winning_team[i-1] = 1;}//home team beats spread
-				else if (home_scores[final_order[i-1]] - away_scores[final_order[i-1]] - spreads[i-1] < 0){winning_team[i-1] = -1;}//away team beats spread
+				if (game_data.differential[final_order[i-1]] - spreads[i-1] > 0){winning_team[i-1] = 1;}//home team beats spread
+				else if (game_data.differential[final_order[i-1]] - spreads[i-1] < 0){winning_team[i-1] = -1;}//away team beats spread
 				else {winning_team[i-1] = 0;} //draw
 				
 		}
@@ -416,7 +185,7 @@ function Run_Excel(){
 		for (var c = 6; c < nCol; c++){
 				team_picks[c-6] = [];
 				correct_picks[c-6] = 0;
-				for (var r = 1; r<= home_teams.length; r++){
+				for (var r = 1; r<= numGames; r++){
 						if (c < nCol - 1) {
 								if (excel_output[1][r].toUpperCase().indexOf(excel_output[c][r])>=0){team_picks[c-6][r-1] = -1;}
 								else if (excel_output[2][r].toUpperCase().indexOf(excel_output[c][r])>=0){team_picks[c-6][r-1] = 1;}
@@ -427,9 +196,9 @@ function Run_Excel(){
 				}
 		}
 		//calculate total correct picks
-		for (var r = 0; r < home_teams.length; r++){
+		for (var r = 0; r < numGames; r++){
 				for (var c = 0; c < team_picks.length; c++){
-						if (team_picks[c][r] == winning_team[r] && game_status_code[final_order[r]] == 3){
+						if (team_picks[c][r] == winning_team[r] && game_data.status[final_order[r]] == 'post'){
 								correct_picks[c]++;
 						}
 				}
@@ -441,12 +210,12 @@ function Run_Excel(){
 		
 		//monday points
 		for (var c = 6; c < nCol; c++){
-				mon_points.push(excel_output[c][home_teams.length + 1]);
+				mon_points.push(excel_output[c][numGames + 1]);
 		}
 		
 		//total wins coming into week and final win total
 		for (var c = 6; c < nCol; c++){
-			   overall_wins.push(excel_output[c][home_teams.length + 6]);
+			   overall_wins.push(excel_output[c][numGames + 6]);
 			   combined_wins.push(Number(overall_wins[c-6]) + Number(correct_picks[c-6]));
 		}
 		
@@ -472,22 +241,22 @@ function Run_Excel(){
 		$('#main_table').append( '</tr>');
 		
 
-		for (var r = 0; r < home_teams.length; r++){
+		for (var r = 0; r < numGames; r++){
 				var table_info = [];
 				for (var c = 0; c < team_picks.length; c++){
-						if (team_picks[c][r] == winning_team[r] && game_status_code[final_order[r]] == 3){
+						if (team_picks[c][r] == winning_team[r] && game_data.status[final_order[r]] == 'post'){
 								table_info = table_info.concat('<td bgcolor="#00FF00">' + excel_output[c+6][r+1] + '</td>');
-						} else if (team_picks[c][r] == winning_team[r] && game_status_code[final_order[r]] == 2){
+						} else if (team_picks[c][r] == winning_team[r] && game_data.status[final_order[r]] == 'ingame'){
 								table_info = table_info.concat('<td bgcolor="#b3ffb3">' + excel_output[c+6][r+1] + '</td>');
-						} else if (team_picks[c][r] != winning_team[r] && game_status_code[final_order[r]] == 3){
+						} else if (team_picks[c][r] != winning_team[r] && game_data.status[final_order[r]] == 'post'){
 								table_info = table_info.concat('<td bgcolor="#FF0000">' + excel_output[c+6][r+1] + '</td>');
-						} else if (team_picks[c][r] != winning_team[r] && game_status_code[final_order[r]] == 2){
+						} else if (team_picks[c][r] != winning_team[r] && game_data.status[final_order[r]] == 'ingame'){
 								table_info = table_info.concat('<td bgcolor="#FFB2B2">' + excel_output[c+6][r+1] + '</td>');
 						} else {
 								table_info = table_info.concat('<td bgcolor="#FFFFFF">' + excel_output[c+6][r+1] + '</td>');
 						}
 				}
-				$('#main_table').append( '<tr><td bgcolor="#DFDFDF">' + team_code[main_order_away[r]] + '</td><td bgcolor="#DFDFDF">' + away_scores[final_order[r]] + '</td><td bgcolor="#DFDFDF">' + team_code[main_order_home[r]] + '</td><td bgcolor="#DFDFDF">' + home_scores[final_order[r]] + '</td><td bgcolor="#DFDFDF">' + spreads[r] + '</td><td bgcolor="#DFDFDF">' + game_status_text[final_order[r]] + '</td>' + table_info);
+				$('#main_table').append( '<tr><td bgcolor="#DFDFDF">' + team_code[main_order_away[r]] + '</td><td bgcolor="#DFDFDF">' + game_data.awayScore[final_order[r]] + '</td><td bgcolor="#DFDFDF">' + team_code[main_order_home[r]] + '</td><td bgcolor="#DFDFDF">' + game_data.homeScore[final_order[r]] + '</td><td bgcolor="#DFDFDF">' + spreads[r] + '</td><td bgcolor="#DFDFDF">' + game_data.message[final_order[r]] + '</td>' + table_info);
 				$('#main_table').append( '</tr>');
 		}
 		$('#main_table').append( '<tr>');
@@ -539,22 +308,22 @@ function Run_Excel(){
 				$('#main_table').append('<th class="vertical"><div class="vertical">' + excel_output[si2[c-6]+6][0] +'</div></th>')
 		}
 		$('#main_table').append( '</tr>');
-		for (var r = 0; r < home_teams.length; r++){
+		for (var r = 0; r < numGames; r++){
 				var table_info = [];
 				for (var c = team_picks.length - 1; c >= 0; c--){
-						if (team_picks[si2[c]][r] == winning_team[r] && game_status_code[final_order[r]] == 3){
+						if (team_picks[si2[c]][r] == winning_team[r] && game_data.status[final_order[r]] == 'post'){
 								table_info = table_info.concat('<td bgcolor="#00FF00">' + excel_output[si2[c]+6][r+1] + '</td>');
-						} else if (team_picks[si2[c]][r] == winning_team[r] && game_status_code[final_order[r]] == 2){
+						} else if (team_picks[si2[c]][r] == winning_team[r] && game_data.status[final_order[r]] == 'ingame'){
 								table_info = table_info.concat('<td bgcolor="#b3ffb3">' + excel_output[si2[c]+6][r+1] + '</td>');
-						} else if (team_picks[si2[c]][r] != winning_team[r] && game_status_code[final_order[r]] == 3){
+						} else if (team_picks[si2[c]][r] != winning_team[r] && game_data.status[final_order[r]] == 'post'){
 								table_info = table_info.concat('<td bgcolor="#FF0000">' + excel_output[si2[c]+6][r+1] + '</td>');
-						} else if (team_picks[si2[c]][r] != winning_team[r] && game_status_code[final_order[r]] == 2){
+						} else if (team_picks[si2[c]][r] != winning_team[r] && game_data.status[final_order[r]] == 'ingame'){
 								table_info = table_info.concat('<td bgcolor="#FFB2B2">' + excel_output[si2[c]+6][r+1] + '</td>');
 						} else {
 								table_info = table_info.concat('<td bgcolor="#FFFFFF">' + excel_output[si2[c]+6][r+1] + '</td>');
 						}
 				}
-				$('#main_table').append( '<tr><td bgcolor="#DFDFDF">' + team_code[main_order_away[r]] + '</td><td bgcolor="#DFDFDF">' + away_scores[final_order[r]] + '</td><td bgcolor="#DFDFDF">' + team_code[main_order_home[r]] + '</td><td bgcolor="#DFDFDF">' + home_scores[final_order[r]] + '</td><td bgcolor="#DFDFDF">' + spreads[r] + '</td><td bgcolor="#DFDFDF">' + game_status_text[final_order[r]] + '</td>' + table_info);
+				$('#main_table').append( '<tr><td bgcolor="#DFDFDF">' + team_code[main_order_away[r]] + '</td><td bgcolor="#DFDFDF">' + game_data.awayScore[final_order[r]] + '</td><td bgcolor="#DFDFDF">' + team_code[main_order_home[r]] + '</td><td bgcolor="#DFDFDF">' + game_data.homeScore[final_order[r]] + '</td><td bgcolor="#DFDFDF">' + spreads[r] + '</td><td bgcolor="#DFDFDF">' + game_data.message[final_order[r]] + '</td>' + table_info);
 				$('#main_table').append( '</tr>');
 		}
 		
@@ -618,22 +387,22 @@ function Run_Excel(){
 				$('#main_table').append('<th class="vertical"><div class="vertical">' + excel_output[si[c-6]+6][0] +'</div></th>')
 		}
 		$('#main_table').append( '</tr>');
-		for (var r = 0; r < home_teams.length; r++){
+		for (var r = 0; r < numGames; r++){
 				var table_info = [];
 				for (var c = team_picks.length - 1; c >= 0; c--){
-						if (team_picks[si[c]][r] == winning_team[r] && game_status_code[final_order[r]] == 3){
+						if (team_picks[si[c]][r] == winning_team[r] && game_data.status[final_order[r]] == 'post'){
 								table_info = table_info.concat('<td bgcolor="#00FF00">' + excel_output[si[c]+6][r+1] + '</td>');
-						} else if (team_picks[si[c]][r] == winning_team[r] && game_status_code[final_order[r]] == 2){
+						} else if (team_picks[si[c]][r] == winning_team[r] && game_data.status[final_order[r]] == 'ingame'){
 								table_info = table_info.concat('<td bgcolor="#b3ffb3">' + excel_output[si[c]+6][r+1] + '</td>');
-						} else if (team_picks[si[c]][r] != winning_team[r] && game_status_code[final_order[r]] == 3){
+						} else if (team_picks[si[c]][r] != winning_team[r] && game_data.status[final_order[r]] == 'post'){
 								table_info = table_info.concat('<td bgcolor="#FF0000">' + excel_output[si[c]+6][r+1] + '</td>');
-						} else if (team_picks[si[c]][r] != winning_team[r] && game_status_code[final_order[r]] == 2){
+						} else if (team_picks[si[c]][r] != winning_team[r] && game_data.status[final_order[r]] == 'ingame'){
 								table_info = table_info.concat('<td bgcolor="#FFB2B2">' + excel_output[si[c]+6][r+1] + '</td>');
 						} else {
 								table_info = table_info.concat('<td bgcolor="#FFFFFF">' + excel_output[si[c]+6][r+1] + '</td>');
 						}
 				}
-				$('#main_table').append( '<tr><td bgcolor="#DFDFDF">' + team_code[main_order_away[r]] + '</td><td bgcolor="#DFDFDF">' + away_scores[final_order[r]] + '</td><td bgcolor="#DFDFDF">' + team_code[main_order_home[r]] + '</td><td bgcolor="#DFDFDF">' + home_scores[final_order[r]] + '</td><td bgcolor="#DFDFDF">' + spreads[r] + '</td><td bgcolor="#DFDFDF">' + game_status_text[final_order[r]] + '</td>' + table_info);
+				$('#main_table').append( '<tr><td bgcolor="#DFDFDF">' + team_code[main_order_away[r]] + '</td><td bgcolor="#DFDFDF">' + game_data.awayScore[final_order[r]] + '</td><td bgcolor="#DFDFDF">' + team_code[main_order_home[r]] + '</td><td bgcolor="#DFDFDF">' + game_data.homeScore[final_order[r]] + '</td><td bgcolor="#DFDFDF">' + spreads[r] + '</td><td bgcolor="#DFDFDF">' + game_data.message[final_order[r]] + '</td>' + table_info);
 				$('#main_table').append( '</tr>');
 		}
 		
@@ -698,8 +467,6 @@ function Run_Excel(){
 		
 		$('#loading').hide();
 		$('#refresh').show();
-		$('#lastupdate').text('Last update: ' + last_update);
-		$('#lastupdate').show();
 		$('#zoom').show();
 		setTimeout(function(){location.reload(true);}, 300000);
 
@@ -729,7 +496,6 @@ $.getJSON(url_post, function(json) {
         //load excel sheet data
         $.get(xl, function(data){
         m = data;
-
           
                         });
                 });
@@ -882,7 +648,7 @@ table {
 <div id="bottom_lines1"><p>Week | <a href = 'https://fbpool2021.github.io?overall'>Overall</a> | <a href = 'https://fbpool2021.github.io?unsorted'>Unsorted</a></p></div>
 <div id="bottom_lines2"><p><a href = 'https://fbpool2021.github.io'>Week</a> | <a href = 'https://fbpool2021.github.io?overall'>Overall</a> | Unsorted</p></div>
 <div id="bottom_lines3"><p><a href = 'https://fbpool2021.github.io'>Week</a> | Overall | <a href = 'https://fbpool2021.github.io?unsorted'>Unsorted</a> </p></div>
-<div id="refresh">Page reloads automatically every 5 minutes.</div>
+<div id="refresh">Page refreshes automatically every 5 minutes.</div>
 <div id="lastupdate"></div>
 <div id="zoom">To zoom in/out: Control +/- (PC), Command +/- (Mac)</div>
 
