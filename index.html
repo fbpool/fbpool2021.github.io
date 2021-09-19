@@ -14,7 +14,7 @@
 		.then(response => response.json())
 		.then(data => {
   		json_data = data;
-  		RunAll(); // Prints result from `response.json()` in getRequest
+  		RunAll();
 	})
 	.catch(error => console.error(error))
 	 };
@@ -108,6 +108,7 @@ function RunAll() {
 			game_data.homeScore[g] = []
 			game_data.awayScore[g] = []
 			//shorten game message for games that haven't started
+			game_data.message[g] = json_data.events[g].status.type.detail
 			game_data.message[g] = game_data.message[g].replace(',', '')
 			game_data.message[g] = game_data.message[g].replace('th', '')
 			game_data.message[g] = game_data.message[g].replace('at', '')
