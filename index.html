@@ -385,7 +385,15 @@ function Run_Excel(){
 				} 
 		}
 		for (var c = nCol - 1; c >= 6; c--){
-				$('#main_table').append('<th class="vertical"><div class="vertical">' + excel_output[si[c-6]+6][0] +'</div></th>')
+				this_name = excel_output[si[c-6]+6][0]
+				if (suf == "hogtalk"){
+					this_name = this_name.replace("Barry", "DickTweets69");
+					this_name = this_name.replace("Bart", "Fartini");
+					this_name = this_name.replace("Callahan", "Saen");
+					this_name = this_name.replace("Johnson", "BJohns69");
+					this_name = this_name.replace("RS3", "Schlong");
+				}
+				$('#main_table').append('<th class="vertical"><div class="vertical">' + this_name +'</div></th>')
 		}
 		$('#main_table').append( '</tr>');
 		for (var r = 0; r < numGames; r++){
