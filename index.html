@@ -393,7 +393,7 @@ function Run_Excel(){
 					this_name = this_name.replace("Callahan", "Saen");
 					this_name = this_name.replace("Johnson", "BJohns69");
 					this_name = this_name.replace("RS3", "Schlong");
-					$('#main_table').append('<th class="vertical"><div class="verticalHOG">' + this_name +'</div></th>')
+					$('#main_table').append('<th class="verticalHOG"><div class="verticalHOG">' + this_name +'</div></th>')
 					} else {
 					$('#main_table').append('<th class="vertical"><div class="vertical">' + this_name +'</div></th>')
 					}
@@ -521,6 +521,17 @@ div.vertical{
 }
 
 div.vertical2{
+ margin-left: 10px;
+ position: absolute;
+ width: 50px;
+ transform: rotate(-90deg);
+ -webkit-transform: rotate(-90deg); /* Safari/Chrome */
+ -moz-transform: rotate(-90deg); /* Firefox */
+ -o-transform: rotate(-90deg); /* Opera */
+ -ms-transform: rotate(-90deg); /* IE 9 */
+}
+	
+div.verticalHOG{
  margin-left: 10px;
  position: absolute;
  width: 50px;
