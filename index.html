@@ -387,13 +387,19 @@ function Run_Excel(){
 		for (var c = nCol - 1; c >= 6; c--){
 				this_name = excel_output[si[c-6]+6][0]
 				if (suf == "hogtalk"){
+					if (this_name == "Barry" | this_name == "Bart" | this_name == "Callahan" | this_name == "Johnson" | this_name == "RS3"){
 					this_name = this_name.replace("Barry", "DickTweets69");
 					this_name = this_name.replace("Bart", "Fartini");
 					this_name = this_name.replace("Callahan", "Saen");
 					this_name = this_name.replace("Johnson", "BJohns69");
 					this_name = this_name.replace("RS3", "Schlong");
+					$('#main_table').append('<th class="vertical"><div class="verticalHOG">' + this_name +'</div></th>')
+					} else {
+					$('#main_table').append('<th class="vertical"><div class="vertical">' + this_name +'</div></th>')
+					}
+				} else {
+					$('#main_table').append('<th class="vertical"><div class="vertical">' + this_name +'</div></th>')
 				}
-				$('#main_table').append('<th class="vertical"><div class="vertical">' + this_name +'</div></th>')
 		}
 		$('#main_table').append( '</tr>');
 		for (var r = 0; r < numGames; r++){
@@ -534,6 +540,18 @@ th.vertical{
  background: #404040;
  /*background: linear-gradient(#333 0%,#444 100%);*/
  color: #FFFFFF;
+ border: 0px solid #000;
+}
+	
+th.verticalHOG{
+ padding-top: 30px;
+ line-height: 30px;
+ padding-bottom: 50px;
+ font-size: 11px;
+ text-align: left;
+ background: #404040;
+ /*background: linear-gradient(#333 0%,#444 100%);*/
+ color: #FF0000;
  border: 0px solid #000;
 }
 
