@@ -119,6 +119,10 @@ function RunAll() {
 			game_data.message[g] = game_data.message[g].replace('January ', '1/')
 			game_data.message[g] = game_data.message[g].replace(' EDT', '')
 			game_data.message[g] = game_data.message[g].replace(' EDS', '')
+			game_data.message[g] = game_data.message[g].replace('st ', ' ')
+			game_data.message[g] = game_data.message[g].replace('nd ', ' ')
+			game_data.message[g] = game_data.message[g].replace('rd ', ' ')
+			game_data.message[g] = game_data.message[g].replace('th ', ' ')
 		}
 		
 		
