@@ -135,7 +135,6 @@ function RunAll() {
 function Run_Excel(){
 	$.get(xl, function(data){
         m = data;
-	nCol = m.indexOf('Saturday 1');
 
         fb_test = m.indexOf('\n');
         
@@ -146,6 +145,8 @@ function Run_Excel(){
 		}
         
 		m = m.split(',');
+		nCol = m.indexOf('Saturday 1');
+		
 		for (var i = 0; i < nCol; i++){
 				excel_output[i] = [];
 		}
